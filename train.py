@@ -18,7 +18,6 @@ import torchvision
 from torchvision import transforms
 from torch.autograd import Variable
 from models import VGG, ResNetCifar10
-from load import DataLoader
 from facedata import FaceData
 
 
@@ -71,6 +70,8 @@ def train(epoch, model, optimizer, loader):
 
     model.train()
     for batch_idx, (data, target) in enumerate(loader):
+        data=data.type(torch.FloatTensor)
+        target=target.type(torch.LongTensor)
         if args.cuda:
             data, target = data.cuda(), target.cuda()
         data, target = Variable(data).float(), Variable(target).long()

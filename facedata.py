@@ -54,7 +54,7 @@ class FaceData(data.Dataset):
         """
         data_frame = self.labels['emotion']  # Selecting Emotion Only
         data_frame = data_frame.astype('category', categories=list(range(7)))
-        data_frame = pd.get_dummies(data_frame)
+        #data_frame = pd.get_dummies(data_frame)
         data_frame = data_frame.values
         return data_frame
 
