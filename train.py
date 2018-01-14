@@ -18,6 +18,7 @@ import torchvision
 from torchvision import transforms
 from torch.autograd import Variable
 from models import VGG, ResNetCifar10, BKVGG12
+from facedata import FaceData
 
 
 parser = argparse.ArgumentParser(
@@ -69,9 +70,11 @@ def train(epoch, model, optimizer, loader):
 
     model.train()
     for batch_idx, (data, target) in enumerate(loader):
+        data=data.type(torch.FloatTensor)
+        target=target.type(torch.LongTensor)
         if args.cuda:
             data, target = data.cuda(), target.cuda()
-        data, target = Variable(data), Variable(target)
+        data, target = Variable(data).float(), Variable(target).long()
 
         output = model(data)
         loss = F.nll_loss(output, target)
@@ -139,23 +142,12 @@ def main():
     normalize = transforms.Normalize(
         (0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
 
-    train_loader = torch.utils.data.DataLoader(
-        torchvision.datasets.CIFAR10(
-            root='./data', train=True, download=True,
-            transform=transforms.Compose([
-                transforms.RandomCrop(32, padding=4),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                normalize,
-            ])), batch_size=128, shuffle=True, num_workers=2)
+    trn_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='Training')
+    val_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='PublicTest')
 
-    test_loader = torch.utils.data.DataLoader(
-        torchvision.datasets.CIFAR10(
-            root='./data', train=False, download=True,
-            transform=transforms.Compose([
-                transforms.ToTensor(),
-                normalize,
-            ])), batch_size=128, shuffle=False, num_workers=2)
+    train_loader = torch.utils.data.DataLoader(trn_dataset, batch_size=50, shuffle=False, num_workers=4)
+    test_loader = torch.utils.data.DataLoader(val_dataset, batch_size=50, shuffle=False, num_workers=4)
+
 
     model = {
         'vgg': VGG(),

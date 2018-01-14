@@ -48,7 +48,7 @@ class ResNetCifar10(nn.Module):
         super(ResNetCifar10, self).__init__()
         ch = [16, 32, 64]
         self.features = nn.Sequential(OrderedDict([
-            ('conv1', nn.Conv2d(3, ch[0], 3, 1, 1, bias=False)),
+            ('conv1', nn.Conv2d(1, ch[0], 3, 1, 1, bias=False)),
             ('norm1', nn.BatchNorm2d(ch[0])),
             ('relu1', nn.ReLU(inplace=True)),
             ('resb1', ResidualBlock(ch[0], ch[0], n_block)),
@@ -56,7 +56,7 @@ class ResNetCifar10(nn.Module):
             ('resb3', ResidualBlock(ch[1], ch[2], n_block, 2)),
             ('avgpl', nn.AvgPool2d(8)),
         ]))
-        self.fc = nn.Linear(ch[2], 10)
+        self.fc = nn.Linear(ch[2], 7)
         self._initialize_weights()
 
     def _initialize_weights(self):
