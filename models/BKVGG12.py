@@ -8,7 +8,7 @@ class BKVGG12(nn.Module):
         super(BKVGG12, self).__init__()
         self.features = nn.Sequential(
 
-            nn.Conv2d(3, 32, kernel_size=3, stride=1, padding=1),  #conv3 32 #TODO change this for FER dataset
+            nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1),  #conv3 32
             nn.ReLU(inplace=True),
             nn.Conv2d(32, 32, kernel_size=3, stride=1, padding=1), #conv3 32
             nn.ReLU(inplace=True),
@@ -36,7 +36,7 @@ class BKVGG12(nn.Module):
         )
         self.classifier = nn.Sequential(
             nn.Dropout(),
-            nn.Linear(256 * 4 * 4, 256), #TODO change
+            nn.Linear(256 * 6 * 6, 256),
             nn.ReLU(inplace=True),
             nn.Dropout(),
             nn.Linear(256, 256),

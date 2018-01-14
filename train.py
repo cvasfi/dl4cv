@@ -156,7 +156,7 @@ def main():
         'resnet44': ResNetCifar10(n_block=5),
         'resnet56': ResNetCifar10(n_block=6),
         'resnet110': ResNetCifar10(n_block=18),
-        'bkvgg12': BKVGG12(10)
+        'bkvgg12': BKVGG12(7)
     }.get(args.model)
 
     if args.cuda:
