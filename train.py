@@ -20,7 +20,6 @@ from torch.autograd import Variable
 from models import VGG, ResNetCifar10, BKVGG12
 from facedata import FaceData
 
-
 parser = argparse.ArgumentParser(
     description='Place Categorization on Sparse MPO')
 parser.add_argument('--batch-size', type=int, default=128, metavar='N')
@@ -142,7 +141,17 @@ def main():
     normalize = transforms.Normalize(
         (0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
 
-    trn_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='Training')
+    transform = transforms.Compose([#transforms.ToTensor(),
+                                    #transforms.ToPILImage(),
+                                    transforms.RandomHorizontalFlip(),
+                                    transforms.RandomRotation(45),
+                                    #transforms.RandomResizedCrop(42, scale=0.875, ratio=(0.875,1.125)),
+                                    transforms.RandomCrop(42),
+                                    #transforms.Grayscale(),
+                                    transforms.ToTensor()
+          ])
+
+    trn_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='Training', transform = transform)
     val_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='PublicTest')
 
     train_loader = torch.utils.data.DataLoader(trn_dataset, batch_size=50, shuffle=False, num_workers=4)
