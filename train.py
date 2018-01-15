@@ -70,11 +70,14 @@ def train(epoch, model, optimizer, loader):
 
     model.train()
     for batch_idx, (data, target) in enumerate(loader):
-        data=data.type(torch.FloatTensor)
-        target=target.type(torch.LongTensor)
+        #data=data.type(torch.FloatTensor)
+        #target=target.type(torch.LongTensor)
         if args.cuda:
             data, target = data.cuda(), target.cuda()
-        data, target = Variable(data).float(), Variable(target).long()
+        #print("Input Type")
+        #print(type(data))
+        data, target = Variable(data).float(), Variable(target)
+
 
         output = model(data)
         loss = F.nll_loss(output, target)
@@ -108,7 +111,7 @@ def test(epoch, model, optimizer, loader):
     for data, target in loader:
         if args.cuda:
             data, target = data.cuda(), target.cuda()
-        data, target = Variable(data, volatile=True), Variable(
+        data, target = Variable(data, volatile=True).float(), Variable(
             target, volatile=True)
 
         output = model(data)
