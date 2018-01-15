@@ -10,9 +10,10 @@ import numpy as np
 import pandas as pd
 import cv2 as cv
 
+
 class FaceData(data.Dataset):
 
-    def __init__(self, dataset_csv="data/fer2013.csv", dataset_type='Training'):
+    def __init__(self, dataset_csv="data/fer2013.csv", dataset_type='Training', transform=None):
         self.root_dir_name = os.path.dirname(dataset_csv)
         df = pd.read_csv(dataset_csv)
         #self.facial_expressions = ("Angry", "Disgust", "Fear", "Happy", "Sad", "Surprise", "Neutral")
@@ -22,6 +23,7 @@ class FaceData(data.Dataset):
         self.images = self.transform_images()
         self.labels = df.loc[df['Usage'] == dataset_type, ['emotion']]
         self.labels = self.transform_labels()
+        self.transform = transform
 
     def __len__(self):
         return len(self.images)
@@ -29,6 +31,12 @@ class FaceData(data.Dataset):
     def __getitem__(self, idx):
         image = self.images[idx]
         label = self.labels[idx]
+        #print(image.shape)
+        image = Image.fromarray(image, 'L')
+
+        if self.transform:
+            image = self.transform(image)
+
         return image, label
 
 
@@ -43,7 +51,7 @@ class FaceData(data.Dataset):
         # convert pixels from string to ndarray
         data_frame = np.apply_along_axis(lambda x: np.array(x[0].split()).astype(dtype=float), 1, data_frame)
         print(data_frame.shape)
-        data_frame = data_frame.reshape((data_frame.shape[0],1, 48, 48))  # reshape to NxHxWxC
+        data_frame = data_frame.reshape((data_frame.shape[0], 48, 48))  # reshape to NxHxWxC
         print(data_frame.shape)
         return data_frame
 
