@@ -33,7 +33,7 @@ parser.add_argument('--save-interval', type=int, default=50, metavar='N')
 parser.add_argument('--fold', type=int, default=0)
 parser.add_argument('--optimizer', type=str, default='momentum_sgd')
 parser.add_argument('--model', type=str, required=True)
-parser.add_argument('--lr', type=float, default=0.1)
+parser.add_argument('--lr', type=float, default=0.001)
 parser.add_argument('--lr-decay', type=float, default=0.1)
 parser.add_argument('--lr-decay-rate', type=float, default=100)
 parser.add_argument('--weight-decay', type=float, default=1e-4)
@@ -93,11 +93,11 @@ def train(epoch, model, optimizer, loader):
 
         if batch_idx % args.log_interval == 0:
             print('Train Epoch: {}\t'
-                  'Batch: [{:5d}/{:5d} ({:3.0f}%)]\t'
+                  'Batch: [{:5d}/{:5d} ({:3.0f}%)]\t'                     
                   'Loss: {:.6f}'.format(
                       epoch, batch_idx * len(data), len(loader.dataset),
                       100. * batch_idx / len(loader), losses.val))
-
+            print('Training accuracy:', accuracy.val )
     if args.tensorboard:
         logger.log_value('train_loss', losses.avg, epoch)
         logger.log_value('train_accuracy', accuracy.avg, epoch)
