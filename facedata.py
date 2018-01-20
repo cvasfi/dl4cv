@@ -12,7 +12,7 @@ import cv2 as cv
 
 class FaceData(data.Dataset):
 
-    def __init__(self, dataset_csv="data/fer2013.csv", dataset_type='Training'):
+    def __init__(self, dataset_csv="data/fer2013.csv", dataset_type='Training', transform = None):
         self.root_dir_name = os.path.dirname(dataset_csv)
         df = pd.read_csv(dataset_csv)
         #self.facial_expressions = ("Angry", "Disgust", "Fear", "Happy", "Sad", "Surprise", "Neutral")
@@ -22,6 +22,7 @@ class FaceData(data.Dataset):
         self.images = self.transform_images()
         self.labels = df.loc[df['Usage'] == dataset_type, ['emotion']]
         self.labels = self.transform_labels()
+        self.transform = transform
 
     def __len__(self):
         return len(self.images)
@@ -45,6 +46,7 @@ class FaceData(data.Dataset):
         print(data_frame.shape)
         data_frame = data_frame.reshape((data_frame.shape[0],1, 48, 48))  # reshape to NxHxWxC
         print(data_frame.shape)
+        #data_frame = data_frame.float()
         return data_frame
 
     def transform_labels(self):
@@ -56,7 +58,10 @@ class FaceData(data.Dataset):
         data_frame = data_frame.astype('category', categories=list(range(7)))
         #data_frame = pd.get_dummies(data_frame)
         data_frame = data_frame.values
+        #data_frame = data_frame.float()
         return data_frame
 
-
-
+        # inputs, labels = data
+        # inputs = inputs.float()
+        # labels = labels.float()
+        # inputs, labels = Variable(inputs), Variable(labels)

@@ -17,7 +17,7 @@ import torch.optim as optim
 import torchvision
 from torchvision import transforms
 from torch.autograd import Variable
-from models import VGG, ResNetCifar10, BKVGG12
+from models import VGG, ResNetCifar10, BKVGG12, AlexNet
 from facedata import FaceData
 
 
@@ -25,7 +25,7 @@ parser = argparse.ArgumentParser(
     description='Place Categorization on Sparse MPO')
 parser.add_argument('--batch-size', type=int, default=128, metavar='N')
 parser.add_argument('--test-batch-size', type=int, default=128, metavar='N')
-parser.add_argument('--epochs', type=int, default=500, metavar='N')
+parser.add_argument('--epochs', type=int, default=200, metavar='N')
 parser.add_argument('--no-cuda', action='store_true', default=False)
 parser.add_argument('--seed', type=int, default=1, metavar='S')
 parser.add_argument('--log-interval', type=int, default=50, metavar='N')
@@ -37,7 +37,7 @@ parser.add_argument('--lr', type=float, default=0.0001)
 parser.add_argument('--lr-decay', type=float, default=0.1)
 parser.add_argument('--lr-decay-rate', type=float, default=100)
 parser.add_argument('--weight-decay', type=float, default=1e-4)
-parser.add_argument('--tensorboard', action='store_true')
+parser.add_argument('--tensorboard', action='store_true', default=True)
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
 
@@ -145,11 +145,24 @@ def main():
     normalize = transforms.Normalize(
         (0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
 
-    trn_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='Training')
+    # data augmentation
+    transform = transforms.Compose([transforms.RandomHorizontalFlip(),
+                                    transforms.RandomRotation(45),
+                                    transforms.RandomResizedCrop(42, scale=(0.875, 1.125), ratio=(1.0, 1.0)),
+                                    transforms.ToTensor()
+                                    ])
+
+    trn_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='Training', transform=transform)
     val_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='PublicTest')
 
     train_loader = torch.utils.data.DataLoader(trn_dataset, batch_size=50, shuffle=False, num_workers=4)
     test_loader = torch.utils.data.DataLoader(val_dataset, batch_size=50, shuffle=False, num_workers=4)
+
+    #trn_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='Training')
+    #val_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='PublicTest')
+
+    #train_loader = torch.utils.data.DataLoader(trn_dataset, batch_size=50, shuffle=False, num_workers=4)
+    #test_loader = torch.utils.data.DataLoader(val_dataset, batch_size=50, shuffle=False, num_workers=4)
 
 
     model = {
@@ -159,7 +172,8 @@ def main():
         'resnet44': ResNetCifar10(n_block=5),
         'resnet56': ResNetCifar10(n_block=6),
         'resnet110': ResNetCifar10(n_block=18),
-        'bkvgg12': BKVGG12(7)
+        'bkvgg12': BKVGG12(7),
+        'alexnet': AlexNet(7)
     }.get(args.model)
 
     if args.cuda:
@@ -179,6 +193,7 @@ def main():
 
         train(epoch, model, optimizer, train_loader)
         test(epoch, model, optimizer, test_loader)
+        #log_value('v1', v1, epoch)
 
         if epoch % args.save_interval == 0:
             torch.save(model.state_dict(),
