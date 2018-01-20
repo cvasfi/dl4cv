@@ -45,7 +45,7 @@ class BKVGG12(nn.Module):
         )
         self.classifier = nn.Sequential(
             nn.Dropout(),
-            nn.Linear(256 * 6 * 6, 256),
+            nn.Linear(256 * 5 * 5, 256),
             nn.ReLU(inplace=True),
             nn.Dropout(),
             nn.Linear(256, 256),
