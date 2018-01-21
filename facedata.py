@@ -32,9 +32,11 @@ class FaceData(data.Dataset):
         image = self.images[idx]
         label = self.labels[idx]
         # mode 'L': 8-bit pixels, black and white
-        image = Image.fromarray(image, 'L')
+        #image = Image.fromarray(image, 'L')
 
         if self.transform:
+            # mode 'L': 8-bit pixels, black and white
+            image = Image.fromarray(image, 'L')
             image = self.transform(image)
 
         return image, label
