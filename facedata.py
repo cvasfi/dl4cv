@@ -36,6 +36,7 @@ class FaceData(data.Dataset):
 
         if self.transform:
             # mode 'L': 8-bit pixels, black and white
+            image = np.squeeze(image,0)
             image = Image.fromarray(image, 'L')
             image = self.transform(image)
 
@@ -53,7 +54,7 @@ class FaceData(data.Dataset):
         # convert pixels from string to ndarray
         data_frame = np.apply_along_axis(lambda x: np.array(x[0].split()).astype(dtype=float), 1, data_frame)
         print(data_frame.shape)
-        data_frame = data_frame.reshape((data_frame.shape[0], 48, 48))  # reshape to NxHxWxC
+        data_frame = data_frame.reshape((data_frame.shape[0], 1, 48, 48))  # reshape to NxHxWxC
         print(data_frame.shape)
         return data_frame
 
