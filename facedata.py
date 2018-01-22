@@ -35,8 +35,8 @@ class FaceData(data.Dataset):
         #image = Image.fromarray(image, 'L')
 
         if self.transform:
-            # mode 'L': 8-bit pixels, black and white
             image = np.squeeze(image,0)
+            # mode 'L': 8-bit pixels, black and white
             image = Image.fromarray(image, 'L')
             image = self.transform(image)
 

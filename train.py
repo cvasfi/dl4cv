@@ -145,14 +145,18 @@ def main():
         (0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
 
     # data augmentation
-    transform = transforms.Compose([transforms.RandomHorizontalFlip(),
+    transform1 = transforms.Compose([transforms.RandomHorizontalFlip(),
                                     transforms.RandomRotation(45),
                                     transforms.RandomResizedCrop(42, scale=(0.875, 1.125), ratio=(1.0, 1.0)),
                                     transforms.ToTensor()
                                     ])
 
-    trn_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='Training', transform=transform)
-    val_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='PublicTest')
+    transform2 = transforms.Compose([transforms.Resize(42),
+                                     transforms.ToTensor()
+                                     ])
+
+    trn_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='Training', transform=transform1)
+    val_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='PublicTest', transform=transform2)
 
     train_loader = torch.utils.data.DataLoader(trn_dataset, batch_size=50, shuffle=False, num_workers=4)
     test_loader = torch.utils.data.DataLoader(val_dataset, batch_size=50, shuffle=False, num_workers=4)
