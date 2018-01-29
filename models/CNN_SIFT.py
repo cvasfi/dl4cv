@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 import numpy as np
+import cv2
+import random
 
 class CNN_SIFT(nn.Module):
 
@@ -39,18 +41,41 @@ class CNN_SIFT(nn.Module):
         )
 
     def forward(self, x):
+        sift_features=[]
+        batchsize=x.size()[0]
+        imgs = x.data.cpu().numpy()
+
         x = self.features(x)
-
         x = x.view(x.size(0), -1)
-        features=torch.from_numpy(np.zeros((50,16*128))) #this will be replaced by a flattened array containing dense SIFT features for each image
-        if self.use_cuda:
-            features=features.cuda()
 
-        features=Variable(features, requires_grad = False).float()
-        print(type(x))
-        print(type(features))
-        x=torch.cat((x,features),1)
-        print x.size(1)
+        for imidx in range(batchsize):
+            img=np.squeeze(imgs[imidx,:],0)
+
+            #def denormalize(n):
+            #    return int(n*255)
+            #denormalize=np.vectorize(denormalize)
+            ##img=denormalize(img)
+
+            img = np.array(img * 255, dtype=np.uint8)
+            img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 3, 0)  #numpy to opencv conversion, may be wrong
+            #cv2.imwrite('test/'+str(random.randint(0,100))+".png",img)
+            sift = cv2.xfeatures2d.SIFT_create()
+
+            kp=[]
+            for r in range(0,48,12):
+                for c in range(0,48,12):
+                    kp.append(cv2.KeyPoint(r,c,12))
+
+            sift_features.append(np.array(sift.compute(img, kp)[1]).flatten())
+
+        sift_features=np.vstack(tuple(sift_features))
+        sift_features = torch.from_numpy(sift_features)
+
+        if self.use_cuda:
+            sift_features=sift_features.cuda()
+
+        sift_features=Variable(sift_features, requires_grad = False).float()
+        x=torch.cat((x,sift_features),1)
 
         x = self.classifier(x)
         return F.log_softmax(x)
