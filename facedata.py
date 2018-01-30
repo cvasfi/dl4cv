@@ -32,9 +32,14 @@ class FaceData(data.Dataset):
         image = self.images[idx]
         label = self.labels[idx]
         # mode 'L': 8-bit pixels, black and white
-        image = Image.fromarray(image, 'L')
+        #image = Image.fromarray(image, 'L')
 
         if self.transform:
+            image = np.squeeze(image,0)
+            # mode 'L': 8-bit pixels, black and white
+            image = Image.fromarray(np.uint8(image))
+            #filename = "./images/imageB" + str(idx) + ".jpeg"
+            #image.save(filename)
             image = self.transform(image)
 
         return image, label
@@ -51,7 +56,7 @@ class FaceData(data.Dataset):
         # convert pixels from string to ndarray
         data_frame = np.apply_along_axis(lambda x: np.array(x[0].split()).astype(dtype=float), 1, data_frame)
         print(data_frame.shape)
-        data_frame = data_frame.reshape((data_frame.shape[0], 48, 48))  # reshape to NxHxWxC
+        data_frame = data_frame.reshape((data_frame.shape[0], 1, 48, 48))  # reshape to NxHxWxC
         print(data_frame.shape)
         return data_frame
 
