@@ -39,9 +39,9 @@ class FaceData(data.Dataset):
             image = np.squeeze(image,0)
             # mode 'L': 8-bit pixels, black and white
             image = Image.fromarray(np.uint8(image), 'L')
-            filename = "../images/imageB" + str(idx) + ".jpeg"
+            #filename = "../images/imageB" + str(idx) + ".jpeg"
             image = self.transform(image)
-            utils.save_image(image, filename)
+            #utils.save_image(image, filename)
 
 
         return image, label
