@@ -17,7 +17,7 @@ import torch.optim as optim
 import torchvision
 from torchvision import transforms
 from torch.autograd import Variable
-from models import VGG, ResNetCifar10, BKVGG12
+from models import VGG, ResNetCifar10, BKVGG12, CNN_SIFT
 from facedata import FaceData
 
 parser = argparse.ArgumentParser(
@@ -170,7 +170,8 @@ def main():
         'resnet44': ResNetCifar10(n_block=5),
         'resnet56': ResNetCifar10(n_block=6),
         'resnet110': ResNetCifar10(n_block=18),
-        'bkvgg12': BKVGG12(7)
+        'bkvgg12': BKVGG12(7),
+        "cnn_sift": CNN_SIFT(7, args.cuda)
     }.get(args.model)
 
     if args.cuda:
