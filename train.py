@@ -185,7 +185,7 @@ def main():
         'nesterov_sgd': optim.SGD(model.parameters(), args.lr, momentum=0.9, weight_decay=args.weight_decay, nesterov=True),
     }.get(args.optimizer)
 
-    results = []
+    results = {}
     best_model = model
     best_accuray = 0.0
 
@@ -198,7 +198,7 @@ def main():
         train_accuracy = train(epoch, model, optimizer, train_loader)
         val_accuracy   = test(epoch, model, optimizer, test_loader)
 
-        results[epoch] = (model, train_accuracy, val_accuracy)
+        results.append((model, train_accuracy, val_accuracy))
 
 
         if epoch % args.save_interval == 0:
