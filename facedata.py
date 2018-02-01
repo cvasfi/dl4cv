@@ -58,34 +58,34 @@ class FaceData(data.Dataset):
         #print(data_frame.shape)
         data_frame = data_frame.reshape((data_frame.shape[0], 1, 48, 48))  # reshape to NxHxWxC
 
-        print("######### Mean pxiels ###########")
+        #print("######### Mean pxiels ###########")
         mean_pixel = np.mean(data_frame, axis=(1,2,3))
         std_pixel = np.std(data_frame, axis=(1,2, 3))
-        print(mean_pixel)
-        print("######### Std pxiels ###########")
-        print(std_pixel)
+        #print(mean_pixel)
+        #print("######### Std pxiels ###########")
+        #print(std_pixel)
 
         for i in xrange(data_frame.shape[0]):
             data_frame[i, :] = data_frame[i, :] - (mean_pixel[i] * (3.125 / std_pixel[i]))
 
-        print("######### Mean pxiels ###########")
-        mean_pixel = np.mean(data_frame, axis=(1, 2, 3))
-        std_pixel = np.std(data_frame, axis=(1, 2, 3))
-        print(mean_pixel)
-        print("######### Std pxiels ###########")
-        print(std_pixel)
+        #print("######### Mean pxiels ###########")
+        #mean_pixel = np.mean(data_frame, axis=(1, 2, 3))
+        #std_pixel = np.std(data_frame, axis=(1, 2, 3))
+        #print(mean_pixel)
+        #print("######### Std pxiels ###########")
+        #print(std_pixel)
 
         #print("######### Images ##########")
         #print(data_frame)
 
         data_frame = (data_frame - np.nanmean(data_frame, axis=0)) / np.nanstd(data_frame, axis=0)
 
-        print("######### Mean Image ##########")
-        mean_image = np.nanmean(data_frame, axis=0)
-        std_image = np.nanstd(data_frame, axis=0)
+        #print("######### Mean Image ##########")
+        #mean_image = np.nanmean(data_frame, axis=0)
+        #std_image = np.nanstd(data_frame, axis=0)
 
-        print(mean_image)
-        print(std_image)
+        #print(mean_image)
+        #print(std_image)
 
         return data_frame
 
