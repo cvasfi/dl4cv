@@ -163,6 +163,7 @@ def main():
     test_loader = torch.utils.data.DataLoader(val_dataset, batch_size=50, shuffle=False, num_workers=4)
 
 
+
     model = {
         'vgg': VGG(),
         'resnet20': ResNetCifar10(n_block=3),

@@ -38,8 +38,8 @@ class FaceData(data.Dataset):
             image = np.squeeze(image,0)
             # mode 'L': 8-bit pixels, black and white
             image = Image.fromarray(np.uint8(image))
-            #filename = "./images/imageB" + str(idx) + ".jpeg"
-            #image.save(filename)
+            filename = "../images/imageB" + str(idx) + ".jpeg"
+            image.save(filename)
             image = self.transform(image)
 
         return image, label
@@ -55,9 +55,38 @@ class FaceData(data.Dataset):
         data_frame = data_frame.reshape((data_frame.shape[0], 1))  # Reshape for the subsequent operation
         # convert pixels from string to ndarray
         data_frame = np.apply_along_axis(lambda x: np.array(x[0].split()).astype(dtype=float), 1, data_frame)
-        print(data_frame.shape)
+        #print(data_frame.shape)
         data_frame = data_frame.reshape((data_frame.shape[0], 1, 48, 48))  # reshape to NxHxWxC
-        print(data_frame.shape)
+
+        print("######### Mean pxiels ###########")
+        mean_pixel = np.mean(data_frame, axis=(1,2,3))
+        std_pixel = np.std(data_frame, axis=(1,2, 3))
+        print(mean_pixel)
+        print("######### Std pxiels ###########")
+        print(std_pixel)
+
+        for i in xrange(data_frame.shape[0]):
+            data_frame[i, :] = data_frame[i, :] - (mean_pixel[i] * (3.125 / std_pixel[i]))
+
+        print("######### Mean pxiels ###########")
+        mean_pixel = np.mean(data_frame, axis=(1, 2, 3))
+        std_pixel = np.std(data_frame, axis=(1, 2, 3))
+        print(mean_pixel)
+        print("######### Std pxiels ###########")
+        print(std_pixel)
+
+        #print("######### Images ##########")
+        #print(data_frame)
+
+        data_frame = (data_frame - np.nanmean(data_frame, axis=0)) / np.nanstd(data_frame, axis=0)
+
+        print("######### Mean Image ##########")
+        mean_image = np.nanmean(data_frame, axis=0)
+        std_image = np.nanstd(data_frame, axis=0)
+
+        print(mean_image)
+        print(std_image)
+
         return data_frame
 
     def transform_labels(self):
