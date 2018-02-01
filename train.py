@@ -34,7 +34,7 @@ parser.add_argument('--optimizer', type=str, default='adam')
 parser.add_argument('--model', type=str, required=True)
 parser.add_argument('--lr', type=float, default=0.0001)
 parser.add_argument('--lr-decay', type=float, default=0.1)
-parser.add_argument('--lr-decay-rate', type=float, default=100)
+parser.add_argument('--lr-decay-rate', type=float, default=10)
 parser.add_argument('--weight-decay', type=float, default=1e-4)
 parser.add_argument('--tensorboard', action='store_true')
 args = parser.parse_args()
@@ -101,6 +101,8 @@ def train(epoch, model, optimizer, loader):
         logger.log_value('train_loss', losses.avg, epoch)
         logger.log_value('train_accuracy', accuracy.avg, epoch)
 
+    return accuracy.val
+
 
 def test(epoch, model, optimizer, loader):
     losses = average_meter()
@@ -128,6 +130,8 @@ def test(epoch, model, optimizer, loader):
         logger.log_value('test_loss', losses.avg, epoch)
         logger.log_value('test_accuracy', accuracy.avg, epoch)
 
+    return accuracy.val
+
 
 def main():
 
@@ -140,9 +144,6 @@ def main():
                      'lr_{}'.format(args.lr),
                      'weightdecay_{}'.format(args.weight_decay),
                      datetime.now().isoformat()), flush_secs=1)
-
-    normalize = transforms.Normalize(
-        (0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
 
     # data augmentation
     transform_train = transforms.Compose([transforms.RandomHorizontalFlip(),
@@ -184,18 +185,38 @@ def main():
         'nesterov_sgd': optim.SGD(model.parameters(), args.lr, momentum=0.9, weight_decay=args.weight_decay, nesterov=True),
     }.get(args.optimizer)
 
+    results = []
+    best_model = model
+    best_accuray = 0.0
+
     for epoch in range(1, args.epochs + 1):
         if args.optimizer is not 'adam':
             lr = args.lr * (args.lr_decay ** (epoch // args.lr_decay_rate))
             for param_group in optimizer.param_groups:
                 param_group['lr'] = lr
 
-        train(epoch, model, optimizer, train_loader)
-        test(epoch, model, optimizer, test_loader)
+        train_accuracy = train(epoch, model, optimizer, train_loader)
+        val_accuracy   = test(epoch, model, optimizer, test_loader)
+
+        results[epoch] = (model, train_accuracy, val_accuracy)
+
 
         if epoch % args.save_interval == 0:
             torch.save(model.state_dict(),
                        'log/{}_epoch{}.model'.format(args.model, epoch))
+
+        if best_accuray < val_accuracy:
+            best_model   = model
+            best_accuray = val_accuracy
+
+        if args.optimizer is 'adam':
+            if epoch > 0:
+                if results[epoch][2] <= results[epoch - 1][2]:
+                    print("Decreasing learning rate by a factor of 10")
+                    for param_group in optimizer.param_groups:
+                        param_group['lr'] = args.lr/10
+
+    print ("The best model has an accuracy of " + str(best_accuray))
 
 
 if __name__ == '__main__':
