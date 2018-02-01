@@ -5,6 +5,7 @@ import torch
 import torch.utils.data as data
 from PIL import Image
 from torchvision import transforms
+import torchvision.utils as utils
 import os
 import numpy as np
 import pandas as pd
@@ -37,10 +38,11 @@ class FaceData(data.Dataset):
         if self.transform:
             image = np.squeeze(image,0)
             # mode 'L': 8-bit pixels, black and white
-            image = Image.fromarray(np.uint8(image))
-            #filename = "../images/imageB" + str(idx) + ".jpeg"
-            #image.save(filename)
+            image = Image.fromarray(np.uint8(image), 'L')
+            filename = "../images/imageB" + str(idx) + ".jpeg"
             image = self.transform(image)
+            utils.save_image(image, filename)
+
 
         return image, label
 
@@ -59,14 +61,14 @@ class FaceData(data.Dataset):
         data_frame = data_frame.reshape((data_frame.shape[0], 1, 48, 48))  # reshape to NxHxWxC
 
         #print("######### Mean pxiels ###########")
-        mean_pixel = np.mean(data_frame, axis=(1,2,3))
-        std_pixel = np.std(data_frame, axis=(1,2, 3))
+        #mean_pixel = np.nanmean(data_frame, axis=(1,2,3))
+        #std_pixel = np.nanstd(data_frame, axis=(1,2,3))
         #print(mean_pixel)
         #print("######### Std pxiels ###########")
         #print(std_pixel)
 
-        for i in xrange(data_frame.shape[0]):
-            data_frame[i, :] = data_frame[i, :] - (mean_pixel[i] * (3.125 / std_pixel[i]))
+        #for i in xrange(data_frame.shape[0]):
+            #data_frame[i, :] = (data_frame[i, :] - mean_pixel[i]) * (3.125 / std_pixel[i])
 
         #print("######### Mean pxiels ###########")
         #mean_pixel = np.mean(data_frame, axis=(1, 2, 3))
@@ -78,7 +80,7 @@ class FaceData(data.Dataset):
         #print("######### Images ##########")
         #print(data_frame)
 
-        data_frame = (data_frame - np.nanmean(data_frame, axis=0)) / np.nanstd(data_frame, axis=0)
+        #data_frame = (data_frame - np.nanmean(data_frame, axis=0)) / np.nanstd(data_frame, axis=0)
 
         #print("######### Mean Image ##########")
         #mean_image = np.nanmean(data_frame, axis=0)

@@ -151,6 +151,7 @@ def main():
                                      transforms.RandomResizedCrop(42, scale=(0.875, 1.125), ratio=(1.0, 1.0)),
                                      #transforms.RandomCrop(42)
                                      transforms.ToTensor()
+                                     #transforms.Normalize((0.5067, ), (0.32, ))
                                     ])
 
     transform_test = transforms.Compose([transforms.Resize(42),
@@ -185,7 +186,7 @@ def main():
         'nesterov_sgd': optim.SGD(model.parameters(), args.lr, momentum=0.9, weight_decay=args.weight_decay, nesterov=True),
     }.get(args.optimizer)
 
-    results = {}
+    results = []
     best_model = model
     best_accuray = 0.0
 
