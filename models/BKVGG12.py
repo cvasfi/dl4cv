@@ -4,8 +4,9 @@ import torch.nn.functional as F
 
 class BKVGG12(nn.Module):
 
-    def __init__(self, num_classes=7):
+    def __init__(self, num_classes=7, dropout_rate=0.5):
         super(BKVGG12, self).__init__()
+        self.dropout_rate = dropout_rate
         self.features = nn.Sequential(
 
             nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1),  #conv3 32
@@ -44,10 +45,10 @@ class BKVGG12(nn.Module):
 
         )
         self.classifier = nn.Sequential(
-            nn.Dropout(),
+            nn.Dropout(p=self.dropout_rate),
             nn.Linear(256 * 5 * 5, 256),
             nn.ReLU(inplace=True),
-            nn.Dropout(),
+            nn.Dropout(p=self.dropout_rate),
             nn.Linear(256, 256),
             nn.ReLU(inplace=True),
             nn.Linear(256, num_classes) 
