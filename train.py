@@ -19,6 +19,8 @@ from torchvision import transforms
 from torch.autograd import Variable
 from models import VGG, ResNetCifar10, BKVGG12, CNN_SIFT
 from facedata import FaceData
+import numpy as np
+import os
 
 parser = argparse.ArgumentParser(
     description='Place Categorization on Sparse MPO')
@@ -63,6 +65,8 @@ class average_meter(object):
         self.count += n
         self.avg = self.sum / self.count
 
+train_history = list()
+test_history = list()
 
 def train(epoch, model, optimizer, loader):
     print("Learning rate " + str(args.lr))
@@ -103,6 +107,7 @@ def train(epoch, model, optimizer, loader):
         logger.log_value('train_loss', losses.avg, epoch)
         logger.log_value('train_accuracy', accuracy.avg, epoch)
 
+    train_history.append((epoch, losses.avg, accuracy.avg))
     return accuracy.avg
 
 
@@ -131,6 +136,7 @@ def test(epoch, model, optimizer, loader):
     if args.tensorboard:
         logger.log_value('test_loss', losses.avg, epoch)
         logger.log_value('test_accuracy', accuracy.avg, epoch)
+    test_history.append((epoch, losses.avg, accuracy.avg))
 
     return accuracy.avg
 
@@ -213,12 +219,16 @@ def main():
             best_model   = model
             best_accuray = val_accuracy
 
+    os.makedirs('new_training')
+    np.savetxt("new_training/train_history.csv", train_history, delimiter=",", header="epoch,loss, accuracy",
+               comments="")
+    np.savetxt("new_training/test_history.csv", test_history, delimiter=",", header="epoch,loss, accuracy", comments="")
 
     print ("The best model has an accuracy of " + str(best_accuray))
 
     torch.save(best_model.state_dict(), 'best.model')
 
-    #Test on Public Test
+    #Test on Private Test
     test(1, best_model, optimizer, test1_loader)
 
 
