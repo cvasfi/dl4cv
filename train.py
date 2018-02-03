@@ -101,7 +101,7 @@ def train(epoch, model, optimizer, loader):
         logger.log_value('train_loss', losses.avg, epoch)
         logger.log_value('train_accuracy', accuracy.avg, epoch)
 
-    return accuracy.val
+    return accuracy.avg
 
 
 def test(epoch, model, optimizer, loader):
@@ -130,7 +130,7 @@ def test(epoch, model, optimizer, loader):
         logger.log_value('test_loss', losses.avg, epoch)
         logger.log_value('test_accuracy', accuracy.avg, epoch)
 
-    return accuracy.val
+    return accuracy.avg
 
 
 def main():
