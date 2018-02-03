@@ -212,7 +212,7 @@ def main():
 
         if args.optimizer is 'adam':
             if epoch > 0:
-                if results[epoch - 1][2] <= results[epoch - 2][2]:
+                if results[epoch - 1][2] < results[epoch - 2][2]:
                     print("Decreasing learning rate by a factor of 10")
                     for param_group in optimizer.param_groups:
                         param_group['lr'] = args.lr/10
