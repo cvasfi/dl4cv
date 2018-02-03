@@ -19,12 +19,14 @@ from torchvision import transforms
 from torch.autograd import Variable
 from models import VGG, ResNetCifar10, BKVGG12, CNN_SIFT
 from facedata import FaceData
+import numpy as np
+import os
 
 parser = argparse.ArgumentParser(
     description='Place Categorization on Sparse MPO')
 parser.add_argument('--batch-size', type=int, default=128, metavar='N')
 parser.add_argument('--test-batch-size', type=int, default=128, metavar='N')
-parser.add_argument('--epochs', type=int, default=500, metavar='N')
+parser.add_argument('--epochs', type=int, default=20, metavar='N')
 parser.add_argument('--no-cuda', action='store_true', default=False)
 parser.add_argument('--seed', type=int, default=1, metavar='S')
 parser.add_argument('--log-interval', type=int, default=50, metavar='N')
@@ -62,6 +64,8 @@ class average_meter(object):
         self.count += n
         self.avg = self.sum / self.count
 
+train_history = list()
+test_history = list()
 
 def train(epoch, model, optimizer, loader):
     losses = average_meter()
@@ -101,6 +105,7 @@ def train(epoch, model, optimizer, loader):
         logger.log_value('train_loss', losses.avg, epoch)
         logger.log_value('train_accuracy', accuracy.avg, epoch)
 
+    train_history.append((epoch, losses.avg, accuracy.avg))
 
 def test(epoch, model, optimizer, loader):
     losses = average_meter()
@@ -127,7 +132,7 @@ def test(epoch, model, optimizer, loader):
     if args.tensorboard:
         logger.log_value('test_loss', losses.avg, epoch)
         logger.log_value('test_accuracy', accuracy.avg, epoch)
-
+    test_history.append((epoch, losses.avg, accuracy.avg))
 
 def main():
 
@@ -195,6 +200,11 @@ def main():
         if epoch % args.save_interval == 0:
             torch.save(model.state_dict(),
                        'log/{}_epoch{}.model'.format(args.model, epoch))
+
+    os.makedirs('new_training')
+    np.savetxt("new_training/train_history.csv", train_history, delimiter=",", header="epoch,loss, accuracy",
+                   comments="")
+    np.savetxt("new_training/test_history.csv", test_history, delimiter=",", header="epoch,loss, accuracy", comments="")
 
 
 if __name__ == '__main__':
