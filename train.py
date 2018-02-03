@@ -30,7 +30,7 @@ parser.add_argument('--seed', type=int, default=1, metavar='S')
 parser.add_argument('--log-interval', type=int, default=50, metavar='N')
 parser.add_argument('--save-interval', type=int, default=50, metavar='N')
 parser.add_argument('--fold', type=int, default=0)
-parser.add_argument('--optimizer', type=str, default='adam')
+parser.add_argument('--optimizer', type=str, default='momentum_sgd')
 parser.add_argument('--model', type=str, required=True)
 parser.add_argument('--lr', type=float, default=0.0001)
 parser.add_argument('--lr-decay', type=float, default=0.1)
@@ -191,10 +191,11 @@ def main():
     best_accuray = 0.0
 
     for epoch in range(1, args.epochs + 1):
-        if args.optimizer is not 'adam':
-            lr = args.lr * (args.lr_decay ** (epoch // args.lr_decay_rate))
-            for param_group in optimizer.param_groups:
-                param_group['lr'] = lr
+
+        #if args.optimizer is not 'adam':
+        #    lr = args.lr * (args.lr_decay ** (epoch // args.lr_decay_rate))
+        #    for param_group in optimizer.param_groups:
+        #        param_group['lr'] = lr
 
         train_accuracy = train(epoch, model, optimizer, train_loader)
         val_accuracy   = test(epoch, model, optimizer, test_loader)
@@ -210,9 +211,9 @@ def main():
             best_model   = model
             best_accuray = val_accuracy
 
-        if args.optimizer is 'adam':
-            if epoch > 0:
-                if results[epoch - 1][2] < results[epoch - 2][2]:
+        if args.optimizer is 'momentum_sgd':
+            if epoch > 1:
+                if ((results[epoch - 1][2] < results[epoch - 2][2]) & (results[epoch - 2][2] < results[epoch - 3][2])):
                     print("Decreasing learning rate by a factor of 10")
                     for param_group in optimizer.param_groups:
                         param_group['lr'] = args.lr/10
