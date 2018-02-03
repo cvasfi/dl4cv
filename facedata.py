@@ -36,12 +36,17 @@ class FaceData(data.Dataset):
         #image = Image.fromarray(image, 'L')
 
         if self.transform:
-            image = np.squeeze(image,0)
+            image = np.squeeze(image, 0)
+            #image = normalize(image)
             # mode 'L': 8-bit pixels, black and white
             image = Image.fromarray(np.uint8(image), 'L')
-            #filename = "../images/imageB" + str(idx) + ".jpeg"
+            #filename = "../images/imageA" + str(idx) + ".jpeg"
+            #image.save(filename)
+
             image = self.transform(image)
-            #utils.save_image(image, filename)
+
+            #filename = "../images/imageB" + str(idx) + ".jpeg"
+            #utils.save_image(image, filename, padding=0)
 
 
         return image, label
@@ -60,9 +65,10 @@ class FaceData(data.Dataset):
         #print(data_frame.shape)
         data_frame = data_frame.reshape((data_frame.shape[0], 1, 48, 48))  # reshape to NxHxWxC
 
+        #data_frame = np.squeeze(data_frame, 1)
         #print("######### Mean pxiels ###########")
-        #mean_pixel = np.nanmean(data_frame, axis=(1,2,3))
-        #std_pixel = np.nanstd(data_frame, axis=(1,2,3))
+        #mean_pixel = np.nanmean(data_frame, axis=(0,1,2,3))/255
+        #std_pixel = np.nanstd(data_frame, axis=(0,1,2,3))/255
         #print(mean_pixel)
         #print("######### Std pxiels ###########")
         #print(std_pixel)
@@ -83,12 +89,15 @@ class FaceData(data.Dataset):
         #data_frame = (data_frame - np.nanmean(data_frame, axis=0)) / np.nanstd(data_frame, axis=0)
 
         #print("######### Mean Image ##########")
-        #mean_image = np.nanmean(data_frame, axis=0)
-        #std_image = np.nanstd(data_frame, axis=0)
+        mean_image = np.nanmean(data_frame, axis=0)
+        std_image = np.nanstd(data_frame, axis=0)
+
+
 
         #print(mean_image)
         #print(std_image)
 
+        #return torch.FloatTensor(data_frame)
         return data_frame
 
     def transform_labels(self):

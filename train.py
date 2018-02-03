@@ -151,21 +151,22 @@ def main():
                                      transforms.RandomRotation(45),
                                      transforms.RandomResizedCrop(42, scale=(0.875, 1.125), ratio=(1.0, 1.0)),
                                      #transforms.RandomCrop(42)
-                                     transforms.ToTensor()
-                                     #transforms.Normalize((0.5067, ), (0.32, ))
+                                     transforms.ToTensor(),
+                                     transforms.Normalize((0.5, ),(0.25, ))
                                     ])
 
     transform_test = transforms.Compose([transforms.Resize(42),
-                                     transforms.ToTensor()
+                                     transforms.ToTensor(),
+                                     transforms.Normalize((0.507395516207,), (0.255128989415,))
                                      ])
 
     trn_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='Training', transform=transform_train)
     val_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='PublicTest', transform=transform_test)
+    tst_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='PrivateTest', transform=transform_test)
 
     train_loader = torch.utils.data.DataLoader(trn_dataset, batch_size=50, shuffle=False, num_workers=4)
     test_loader = torch.utils.data.DataLoader(val_dataset, batch_size=50, shuffle=False, num_workers=4)
-
-
+    privatetest = torch.utils.data.DataLoader(val_dataset, batch_size=50, shuffle=False, num_workers=4)
 
     model = {
         'vgg': VGG(),
@@ -220,6 +221,8 @@ def main():
         #                param_group['lr'] = args.lr/10
 
     print ("The best model has an accuracy of " + str(best_accuray))
+
+
 
 
 if __name__ == '__main__':
