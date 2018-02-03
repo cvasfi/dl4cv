@@ -22,8 +22,8 @@ from facedata import FaceData
 
 parser = argparse.ArgumentParser(
     description='Place Categorization on Sparse MPO')
-parser.add_argument('--batch-size', type=int, default=128, metavar='N')
-parser.add_argument('--test-batch-size', type=int, default=128, metavar='N')
+parser.add_argument('--batch-size', type=int, default=256, metavar='N')
+parser.add_argument('--test-batch-size', type=int, default=256, metavar='N')
 parser.add_argument('--epochs', type=int, default=500, metavar='N')
 parser.add_argument('--no-cuda', action='store_true', default=False)
 parser.add_argument('--seed', type=int, default=1, metavar='S')
@@ -37,6 +37,7 @@ parser.add_argument('--lr-decay', type=float, default=0.1)
 parser.add_argument('--lr-decay-after', type=float, default=250)
 parser.add_argument('--weight-decay', type=float, default=1e-4)
 parser.add_argument('--tensorboard', action='store_true')
+parser.add_argument('--dropout-rate', type=float, default=0.5)
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
 
@@ -164,10 +165,9 @@ def main():
     val_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='PublicTest', transform=universal_transform)
     tst_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='PrivateTest', transform=universal_transform)
 
-    train_loader = torch.utils.data.DataLoader(trn_dataset)
-    valid_loader = torch.utils.data.DataLoader(val_dataset)
-
-    test1_loader = torch.utils.data.DataLoader(tst_dataset)
+    train_loader = torch.utils.data.DataLoader(trn_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
+    valid_loader  = torch.utils.data.DataLoader(val_dataset, batch_size=args.test_batch_size, shuffle=False, num_workers=4)
+    test1_loader = torch.utils.data.DataLoader(tst_dataset, batch_size=args.test_batch_size, shuffle=False, num_workers=4)
 
     model = {
         'vgg': VGG(),
@@ -176,7 +176,7 @@ def main():
         'resnet44': ResNetCifar10(n_block=5),
         'resnet56': ResNetCifar10(n_block=6),
         'resnet110': ResNetCifar10(n_block=18),
-        'bkvgg12': BKVGG12(7),
+        'bkvgg12': BKVGG12(7, dropout_rate=args.dropout_rate),
         "cnn_sift": CNN_SIFT(7, args.cuda)
     }.get(args.model)
 
