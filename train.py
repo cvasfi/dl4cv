@@ -256,7 +256,7 @@ def main():
 
     if(args.write_csv):
         key = time.time()
-        directory = 'training-' + str(key)
+        directory = ('training%f').format(str(key))
         os.makedirs(key)
         np.savetxt(directory + "/train_history.csv", train_history, delimiter=",", header="epoch,loss, accuracy", comments="")
         np.savetxt(directory + "/test_history.csv", test_history, delimiter=",", header="epoch,loss, accuracy",   comments="")
