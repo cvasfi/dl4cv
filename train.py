@@ -64,6 +64,7 @@ class average_meter(object):
 
 
 def train(epoch, model, optimizer, loader):
+    print("Learning rate " + str(args.lr))
     losses = average_meter()
     accuracy = average_meter()
 
