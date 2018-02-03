@@ -21,6 +21,7 @@ from models import VGG, ResNetCifar10, BKVGG12, CNN_SIFT
 from facedata import FaceData
 import numpy as np
 import os
+import time
 
 parser = argparse.ArgumentParser(
     description='Place Categorization on Sparse MPO')
@@ -40,6 +41,7 @@ parser.add_argument('--lr-decay-after', type=float, default=250)
 parser.add_argument('--weight-decay', type=float, default=1e-4)
 parser.add_argument('--tensorboard', action='store_true')
 parser.add_argument('--dropout-rate', type=float, default=0.5)
+parser.add_argument('--write-csv', type=bool, default=True)
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
 
@@ -111,7 +113,7 @@ def train(epoch, model, optimizer, loader):
     return accuracy.avg
 
 
-def test(epoch, model, optimizer, loader):
+def vldtn(epoch, model, optimizer, loader):
     losses = average_meter()
     accuracy = average_meter()
 
@@ -140,6 +142,34 @@ def test(epoch, model, optimizer, loader):
 
     return accuracy.avg
 
+def test(model, loader):
+    losses = average_meter()
+    accuracy = average_meter()
+
+    model.eval()
+    for data, target in loader:
+        if args.cuda:
+            data, target = data.cuda(), target.cuda()
+        data, target = Variable(data, volatile=True).float(), Variable(
+            target, volatile=True)
+
+        bs, ncrops, c, h, w = data.size()
+        temp_output = model(data.view(-1, c, h, w))
+        output = temp_output.view(bs, ncrops, -1).mean(1)
+
+        loss = F.nll_loss(output, target)
+        losses.update(loss.data[0], data.size(0))
+
+        pred = output.data.max(1)[1]
+        prec = pred.eq(target.data).cpu().sum()
+        accuracy.update(float(prec) / data.size(0), data.size(0))
+
+    print('\nTest: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
+        losses.avg, int(accuracy.sum), len(loader.dataset), 100. * accuracy.avg))
+
+
+    return accuracy.avg
+
 
 def main():
 
@@ -162,14 +192,19 @@ def main():
                                      transforms.Normalize((0.507395516207, ),(0.255128989415, ))
                                     ])
 
-    universal_transform = transforms.Compose([transforms.Resize(42),
+    validation_transform = transforms.Compose([transforms.Resize(42),
                                      transforms.ToTensor(),
                                      transforms.Normalize((0.507395516207,), (0.255128989415,))
                                      ])
 
+    test_transform = transforms.Compose([transforms.TenCrop(42),
+                                    transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
+                                    transforms.Lambda(lambda crops: torch.stack([transforms.Normalize((0.507395516207,), (0.255128989415,))(crop) for crop in crops])),
+                                    ])
+
     trn_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='Training', transform=transform_train)
-    val_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='PublicTest', transform=universal_transform)
-    tst_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='PrivateTest', transform=universal_transform)
+    val_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='PublicTest', transform=validation_transform)
+    tst_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='PrivateTest', transform=test_transform)
 
     train_loader = torch.utils.data.DataLoader(trn_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
     valid_loader  = torch.utils.data.DataLoader(val_dataset, batch_size=args.test_batch_size, shuffle=False, num_workers=4)
@@ -206,7 +241,7 @@ def main():
             param_group['lr'] = lr
 
         train_accuracy = train(epoch, model, optimizer, train_loader)
-        val_accuracy   = test(epoch, model, optimizer, valid_loader)
+        val_accuracy   = vldtn(epoch, model, optimizer, valid_loader)
 
         results.append((model, train_accuracy, val_accuracy))
 
@@ -219,17 +254,19 @@ def main():
             best_model   = model
             best_accuray = val_accuracy
 
-    os.makedirs('new_training')
-    np.savetxt("new_training/train_history.csv", train_history, delimiter=",", header="epoch,loss, accuracy",
-               comments="")
-    np.savetxt("new_training/test_history.csv", test_history, delimiter=",", header="epoch,loss, accuracy", comments="")
+    if(args.write_csv):
+        key = time.time()
+        directory = 'training-' + str(key)
+        os.makedirs(key)
+        np.savetxt(directory + "/train_history.csv", train_history, delimiter=",", header="epoch,loss, accuracy", comments="")
+        np.savetxt(directory + "/test_history.csv", test_history, delimiter=",", header="epoch,loss, accuracy",   comments="")
 
     print ("The best model has an accuracy of " + str(best_accuray))
 
     torch.save(best_model.state_dict(), 'best.model')
 
     #Test on Private Test
-    test(1, best_model, optimizer, test1_loader)
+    test(best_model, test1_loader)
 
 
 if __name__ == '__main__':
