@@ -30,11 +30,11 @@ parser.add_argument('--seed', type=int, default=1, metavar='S')
 parser.add_argument('--log-interval', type=int, default=50, metavar='N')
 parser.add_argument('--save-interval', type=int, default=50, metavar='N')
 parser.add_argument('--fold', type=int, default=0)
-parser.add_argument('--optimizer', type=str, default='momentum_sgd')
+parser.add_argument('--optimizer', type=str, default='adam')
 parser.add_argument('--model', type=str, required=True)
 parser.add_argument('--lr', type=float, default=0.0001)
 parser.add_argument('--lr-decay', type=float, default=0.1)
-parser.add_argument('--lr-decay-rate', type=float, default=10)
+parser.add_argument('--lr-decay-after', type=float, default=250)
 parser.add_argument('--weight-decay', type=float, default=1e-4)
 parser.add_argument('--tensorboard', action='store_true')
 args = parser.parse_args()
@@ -152,21 +152,22 @@ def main():
                                      transforms.RandomResizedCrop(42, scale=(0.875, 1.125), ratio=(1.0, 1.0)),
                                      #transforms.RandomCrop(42)
                                      transforms.ToTensor(),
-                                     transforms.Normalize((0.5, ),(0.25, ))
+                                     transforms.Normalize((0.507395516207, ),(0.255128989415, ))
                                     ])
 
-    transform_test = transforms.Compose([transforms.Resize(42),
+    universal_transform = transforms.Compose([transforms.Resize(42),
                                      transforms.ToTensor(),
                                      transforms.Normalize((0.507395516207,), (0.255128989415,))
                                      ])
 
     trn_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='Training', transform=transform_train)
-    val_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='PublicTest', transform=transform_test)
-    tst_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='PrivateTest', transform=transform_test)
+    val_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='PublicTest', transform=universal_transform)
+    tst_dataset = FaceData(dataset_csv="data/fer2013.csv", dataset_type='PrivateTest', transform=universal_transform)
 
-    train_loader = torch.utils.data.DataLoader(trn_dataset, batch_size=50, shuffle=False, num_workers=4)
-    test_loader = torch.utils.data.DataLoader(val_dataset, batch_size=50, shuffle=False, num_workers=4)
-    privatetest = torch.utils.data.DataLoader(val_dataset, batch_size=50, shuffle=False, num_workers=4)
+    train_loader = torch.utils.data.DataLoader(trn_dataset)
+    valid_loader = torch.utils.data.DataLoader(val_dataset)
+
+    test1_loader = torch.utils.data.DataLoader(tst_dataset)
 
     model = {
         'vgg': VGG(),
@@ -194,13 +195,12 @@ def main():
 
     for epoch in range(1, args.epochs + 1):
 
-        if args.optimizer is not 'adam':
-            lr = args.lr * (args.lr_decay ** (epoch // args.lr_decay_rate))
-            for param_group in optimizer.param_groups:
-                param_group['lr'] = lr
+        lr = args.lr * (0.1 ** (epoch //  args.lr_decay_after))
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = lr
 
         train_accuracy = train(epoch, model, optimizer, train_loader)
-        val_accuracy   = test(epoch, model, optimizer, test_loader)
+        val_accuracy   = test(epoch, model, optimizer, valid_loader)
 
         results.append((model, train_accuracy, val_accuracy))
 
@@ -213,16 +213,13 @@ def main():
             best_model   = model
             best_accuray = val_accuracy
 
-        #if args.optimizer is 'momentum_sgd':
-        #    if epoch > 1:
-        #        if ((results[epoch - 1][2] < results[epoch - 2][2]) & (results[epoch - 2][2] < results[epoch - 3][2])):
-        #            print("Decreasing learning rate by a factor of 10")
-        #            for param_group in optimizer.param_groups:
-        #                param_group['lr'] = args.lr/10
 
     print ("The best model has an accuracy of " + str(best_accuray))
 
+    torch.save(best_model.state_dict(), 'best.model')
 
+    #Test on Public Test
+    test(1, best_model, optimizer, test1_loader)
 
 
 if __name__ == '__main__':
