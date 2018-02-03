@@ -41,7 +41,7 @@ parser.add_argument('--lr-decay-after', type=float, default=250)
 parser.add_argument('--weight-decay', type=float, default=1e-4)
 parser.add_argument('--tensorboard', action='store_true')
 parser.add_argument('--dropout-rate', type=float, default=0.5)
-parser.add_argument('--write-csv', type=bool, default=True)
+parser.add_argument('--write-csv', type=bool, default=False)
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
 
