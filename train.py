@@ -193,10 +193,10 @@ def main():
 
     for epoch in range(1, args.epochs + 1):
 
-        #if args.optimizer is not 'adam':
-        #    lr = args.lr * (args.lr_decay ** (epoch // args.lr_decay_rate))
-        #    for param_group in optimizer.param_groups:
-        #        param_group['lr'] = lr
+        if args.optimizer is not 'adam':
+            lr = args.lr * (args.lr_decay ** (epoch // args.lr_decay_rate))
+            for param_group in optimizer.param_groups:
+                param_group['lr'] = lr
 
         train_accuracy = train(epoch, model, optimizer, train_loader)
         val_accuracy   = test(epoch, model, optimizer, test_loader)
@@ -212,12 +212,12 @@ def main():
             best_model   = model
             best_accuray = val_accuracy
 
-        if args.optimizer is 'momentum_sgd':
-            if epoch > 1:
-                if ((results[epoch - 1][2] < results[epoch - 2][2]) & (results[epoch - 2][2] < results[epoch - 3][2])):
-                    print("Decreasing learning rate by a factor of 10")
-                    for param_group in optimizer.param_groups:
-                        param_group['lr'] = args.lr/10
+        #if args.optimizer is 'momentum_sgd':
+        #    if epoch > 1:
+        #        if ((results[epoch - 1][2] < results[epoch - 2][2]) & (results[epoch - 2][2] < results[epoch - 3][2])):
+        #            print("Decreasing learning rate by a factor of 10")
+        #            for param_group in optimizer.param_groups:
+        #                param_group['lr'] = args.lr/10
 
     print ("The best model has an accuracy of " + str(best_accuray))
 
