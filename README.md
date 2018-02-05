@@ -1,4 +1,4 @@
-# dl4cv project
+# Facial Emotion Recognition using CNN
 
 The aim is to build and test CNNs to tackle the FER (Facial Emotion Recognition) problem. 
 
